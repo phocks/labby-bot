@@ -14,6 +14,13 @@ export class MyDurableObject extends DurableObject<Env> {
 	async sayThis(name: string): Promise<string> {
 		return `${name}`;
 	}
+
+	async increment(): Promise<number> {
+		let value: number = (await this.ctx.storage.get("value")) || 0;
+		value += 1;
+		await this.ctx.storage.put("value", value);
+		return value;
+	}
 }
 
 export default {
@@ -28,9 +35,10 @@ export default {
 			async ({ context, payload }) => {
 				await sleep(1);
 				const stub = env.MY_DURABLE_OBJECT.getByName("foo");
-				const whatToSay = await stub.sayThis(payload.text);
+				// const whatToSay = await stub.sayThis(payload.text);
+				const whatToSay = await stub.increment();
 				await context.respond({
-					text: `${whatToSay || "Sorry I didn't get that..."}`,
+					text: `Count is: ${whatToSay || "Sorry something went wrong..."}`,
 					response_type: "in_channel",
 				});
 			},
