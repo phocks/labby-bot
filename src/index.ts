@@ -43,9 +43,9 @@ export default {
 					});
 				},
 			)
-			.event("app_home_opened", async (stuff) => {
-				await stuff.context.client.views.publish({
-					user_id: stuff.context.actorUserId ?? "",
+			.event("app_home_opened", async ({ payload, context }) => {
+				await context.client.views.publish({
+					user_id: payload.user,
 					view: {
 						type: "home",
 						blocks: [
