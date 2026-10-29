@@ -77,7 +77,7 @@ export default {
 				async () => "Thinking...",
 				async ({ context, payload }) => {
 					await context.respond({
-						text: `You said: ${payload.text || "nothing"}`,
+						text: `${payload.text || "What was that?"}`,
 						response_type: "in_channel",
 					});
 				},
