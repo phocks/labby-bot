@@ -2,6 +2,10 @@ import { SlackApp, type SlackEdgeAppEnv } from "slack-cloudflare-workers";
 import { sleep } from "./lib/utils";
 import { DurableObject } from "cloudflare:workers";
 
+type Env = SlackEdgeAppEnv & {
+	MY_DURABLE_OBJECT: DurableObjectNamespace<MyDurableObject>;
+};
+
 export class MyDurableObject extends DurableObject<Env> {
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
@@ -15,7 +19,7 @@ export class MyDurableObject extends DurableObject<Env> {
 export default {
 	async fetch(
 		request: Request,
-		env: SlackEdgeAppEnv,
+		env: Env,
 		ctx: ExecutionContext,
 	): Promise<Response> {
 		const app = new SlackApp({ env }).command(
@@ -26,7 +30,7 @@ export default {
 				const stub = env.MY_DURABLE_OBJECT.getByName("foo");
 				const whatToSay = await stub.sayThis(payload.text);
 				await context.respond({
-					text: `${whatToSay || "Sorry I didn't get that..."}`,
+					text: `${payload.text || "Sorry I didn't get that..."}`,
 					response_type: "in_channel",
 				});
 			},
