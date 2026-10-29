@@ -1,8 +1,16 @@
-import {
-	SlackApp,
-	SlackEdgeAppEnv,
-	isPostedMessageEvent,
-} from "slack-cloudflare-workers";
+import { SlackApp, type SlackEdgeAppEnv } from "slack-cloudflare-workers";
+import { sleep } from "./lib/utils";
+import { DurableObject } from "cloudflare:workers";
+
+export class MyDurableObject extends DurableObject<Env> {
+	constructor(ctx: DurableObjectState, env: Env) {
+		super(ctx, env);
+	}
+
+	async sayThis(name: string): Promise<string> {
+		return `${name}`;
+	}
+}
 
 export default {
 	async fetch(
@@ -12,13 +20,13 @@ export default {
 	): Promise<Response> {
 		const app = new SlackApp({ env }).command(
 			"/labby",
-			async () => {
-				return "Thinking...";
-			},
+			async () => {},
 			async ({ context, payload }) => {
 				await sleep(1);
+				const stub = env.MY_DURABLE_OBJECT.getByName("foo");
+				const whatToSay = await stub.sayThis(payload.text);
 				await context.respond({
-					text: `${payload.text || "What was that?"}`,
+					text: `${whatToSay || "Sorry I didn't get that..."}`,
 					response_type: "in_channel",
 				});
 			},
@@ -26,8 +34,4 @@ export default {
 
 		return await app.run(request, ctx);
 	},
-};
-
-const sleep = (seconds: number) => {
-	return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 };
