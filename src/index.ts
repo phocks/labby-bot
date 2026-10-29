@@ -29,19 +29,26 @@ export default {
 		env: Env,
 		ctx: ExecutionContext,
 	): Promise<Response> {
-		const app = new SlackApp({ env }).command(
-			"/labby",
-			async () => {},
-			async ({ context, payload }) => {
-				const stub = env.MY_DURABLE_OBJECT.getByName("foo");
-				// const whatToSay = await stub.sayThis(payload.text);
-				const whatToSay = await stub.increment();
-				await context.respond({
-					text: `Count is: ${whatToSay || "Sorry something went wrong..."}`,
-					response_type: "in_channel",
+		const app = new SlackApp({ env })
+			.command(
+				"/labby",
+				async () => {},
+				async ({ context, payload }) => {
+					const stub = env.MY_DURABLE_OBJECT.getByName("foo");
+					// const whatToSay = await stub.sayThis(payload.text);
+					const whatToSay = await stub.increment();
+					await context.respond({
+						text: `Count is: ${whatToSay || "Sorry something went wrong..."}`,
+						response_type: "in_channel",
+					});
+				},
+			)
+			.event("app_home_opened", async ({ context }) => {
+				await context.client.views.publish({
+					user_id: context.botUserId,
+					view: { type: "home", blocks: [] },
 				});
-			},
-		);
+			});
 
 		return await app.run(request, ctx);
 	},
