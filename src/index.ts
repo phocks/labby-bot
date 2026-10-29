@@ -12,8 +12,11 @@ export default {
 	): Promise<Response> {
 		const app = new SlackApp({ env }).command(
 			"/labby",
-			async () => "Thinking...",
+			async () => {
+				return "Thinking...";
+			},
 			async ({ context, payload }) => {
+				await sleep(1);
 				await context.respond({
 					text: `${payload.text || "What was that?"}`,
 					response_type: "in_channel",
