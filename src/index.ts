@@ -33,7 +33,6 @@ export default {
 			"/labby",
 			async () => {},
 			async ({ context, payload }) => {
-				await sleep(1);
 				const stub = env.MY_DURABLE_OBJECT.getByName("foo");
 				// const whatToSay = await stub.sayThis(payload.text);
 				const whatToSay = await stub.increment();
