@@ -45,11 +45,12 @@ export default {
 				"/labby",
 				async () => {},
 				async ({ context, payload }) => {
+					console.log(payload);
 					const stub = env.MY_DURABLE_OBJECT.getByName("names");
 					const names = await stub.getNames();
 
 					await context.respond({
-						text: names.map((name) => `• ${name}`).join("\n"),
+						text: names.map((name) => `${name}`).join(" "),
 						response_type: "in_channel",
 					});
 					// const stub = env.MY_DURABLE_OBJECT.getByName("foo");
