@@ -6,6 +6,11 @@ type Env = SlackEdgeAppEnv & {
 };
 
 export class MyDurableObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    // Required, as we're extending the base class.
+    super(ctx, env);
+  }
+
   async getNames(): Promise<string[]> {
     return (await this.ctx.storage.get<string[]>("names")) ?? [];
   }
