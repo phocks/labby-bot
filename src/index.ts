@@ -9,6 +9,13 @@ type Env = SlackEdgeAppEnv & {
 export class MyDurableObject extends DurableObject<Env> {
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
+
+		ctx.blockConcurrencyWhile(async () => {
+			const existing = await ctx.storage.get<string[]>("names");
+			if (!existing) {
+				await ctx.storage.put("names", ["Alice", "Bob", "Charlie"]);
+			}
+		});
 	}
 
 	async sayThis(name: string): Promise<string> {
@@ -20,6 +27,10 @@ export class MyDurableObject extends DurableObject<Env> {
 		value += 1;
 		await this.ctx.storage.put("value", value);
 		return value;
+	}
+
+	async getNames(): Promise<string[]> {
+		return (await this.ctx.storage.get<string[]>("names")) ?? [];
 	}
 }
 
@@ -34,13 +45,19 @@ export default {
 				"/labby",
 				async () => {},
 				async ({ context, payload }) => {
-					const stub = env.MY_DURABLE_OBJECT.getByName("foo");
-					// const whatToSay = await stub.sayThis(payload.text);
-					const whatToSay = await stub.increment();
+					const stub = env.MY_DURABLE_OBJECT.getByName("names");
+					const names = await stub.getNames();
+
 					await context.respond({
-						text: `Count is: ${whatToSay || "Sorry something went wrong..."}`,
+						text: names.map((name) => `• ${name}`).join("\n"),
 						response_type: "in_channel",
 					});
+					// const stub = env.MY_DURABLE_OBJECT.getByName("foo");
+					// const whatToSay = await stub.increment();
+					// await context.respond({
+					// 	text: `Count is: ${whatToSay || "Sorry something went wrong..."}`,
+					// 	response_type: "in_channel",
+					// });
 				},
 			)
 			.event("app_home_opened", async ({ payload, context }) => {
@@ -53,7 +70,7 @@ export default {
 								type: "section",
 								text: {
 									type: "mrkdwn",
-									text: "This is a Block Kit example",
+									text: "Hello World! From Labby Bot :)",
 								},
 								accessory: {
 									type: "image",
